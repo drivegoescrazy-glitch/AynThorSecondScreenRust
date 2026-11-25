@@ -76,6 +76,7 @@ feature set is described in `thor-hud-handoff.md`.
 |---|---|
 | App says **Not connected** | Horizon isn't running, or the mod didn't load. Check `horizon-mods.txt`. |
 | **Port 48291 is taken** | Usually a leftover `adb reverse tcp:48291`. The mod retries every 5 s, and says so in your chat. |
+| Importing says **Cross-device link** | A launcher bug, not the file: Android put the import's scratch file on another filesystem than the profile folder. Copy the `.hmod` into `horizon-mods/` with the Files app instead (Horizon Android is in its drawer), and see `tools/horizon-android-fix/` for the launcher fix. |
 | HUD drawn **twice** | An element was handed back to the game from Settings → *Show on this screen*. That is the feature. |
 | Second screen never appears | No presentation-category display was found. Expected on phones; on the Thor, check the second screen in system settings. |
 
