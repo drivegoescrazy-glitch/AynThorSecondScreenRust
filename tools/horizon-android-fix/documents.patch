@@ -71,7 +71,16 @@ index 35a0cee..cc8e36d 100644
 +/// into a scratch file beside the target and renaming that is atomic within one
 +/// directory whatever the source filesystem is, and free space is checked first so a
 +/// full or read-only folder leaves no partial file either.
++///
++/// The rename is tried first and the copy only on `EXDEV`: when the cache and the
++/// profile share a filesystem (most devices) the move is instant and needs no second
++/// copy of the file, and only the device that used to fail pays for the copy.
 +fn place(staged: &Path, target: &Path) -> Result<()> {
++    match std::fs::rename(staged, target) {
++        Ok(()) => return Ok(()),
++        Err(e) if e.kind() != std::io::ErrorKind::CrossesDevices => return Err(e.into()),
++        Err(_) => {}
++    }
 +    let dir = target.parent().ok_or("Invalid content folder")?;
 +    let bytes = std::fs::metadata(staged)?.len();
 +    if space::available(dir)?.is_some_and(|free| free < bytes.saturating_add(1 << 20)) {

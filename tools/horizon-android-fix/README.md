@@ -11,8 +11,9 @@ moved the file with `rename()`, which the kernel refuses across filesystems
 passes against a fresh clone of it. It replaces both `rename()` calls (a new
 import, and the Replace/Keep both choice after a conflict) with `place()`:
 
-- copy into `.<name>.importing` **inside the destination folder** (same
-  filesystem by construction), `fsync`, then rename within that one directory;
+- `rename()` first (instant when cache and profile share a filesystem), and only
+  on `EXDEV` copy into `.importing-<name>.part` **inside the destination folder**
+  (same filesystem by construction), `fsync`, then rename within that directory;
 - check free space first, so a full folder says so instead of leaving a partial
   file;
 - delete the scratch file on any failure.

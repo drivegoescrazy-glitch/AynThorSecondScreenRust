@@ -19,13 +19,16 @@ cd rust && cargo horizon-mod check    # typecheck against the pinned build's SDK
 python3 tools/pack_hmod.py            # -> dist/aynthor_secondscreen-<version>.hmod
 ```
 
-The crate was `cargo check`ed against the last publicly available Horizon API
-(upstream `de8b4e2526df9d7f611515b78123a26a3914176f`, the API crate built from
-source) and its wire-format unit tests ran; it has **not** been run in a
-Horizon instance. Horizon's SDK is published as `sdk-<build>` releases on
-`horizon-rust/horizon`, which is currently unreachable, so the manifest pins
-that last build and must be re-pinned with `cargo horizon-mod update` for a
-newer install. Deliberate gaps versus the Java mod: no map tiles, no item
+The crate was `cargo check`ed against the last API that could be built from
+source (upstream `de8b4e2526df9d7f611515b78123a26a3914176f`) and its wire-format
+unit tests ran; it has **not** been run in a Horizon instance. The released
+manifest instead pins the current build (`4baa5715…`, mixins `e8cd0aa3…`, from
+the newest reviewed native mods in `horizon-rust/horizon-mods`) and declares
+`hooks = 2`, so the launcher may build it on any Nightly that has those hook
+points. `tools/pack_hmod.py` must keep the flat layout (`horizon-mod.toml`,
+`Cargo.toml`, `src/` at the top, no mod-id folder) — a nested folder, an
+`icon.png` that is not a square ≤512 px PNG, or any top-level entry other than
+the documented ones makes the launcher report the package as invalid. Deliberate gaps versus the Java mod: no map tiles, no item
 rendering, no vanilla texture bundle, no glint flag (no public foil read), no
 hardcore flag, and a fixed binding list. See `rust/README.md`.
 

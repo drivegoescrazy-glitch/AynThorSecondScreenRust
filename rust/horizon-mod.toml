@@ -1,14 +1,22 @@
 id = "aynthor_secondscreen"
 name = "AYN Thor Second Screen"
-version = "1.0.1"
+version = "1.0.2"
 description = "Hides Minecraft's HUD and streams it to the AYN Thor's bottom screen over a loopback socket."
 authors = ["exojosh"]
 license = "CC0-1.0"
+homepage = "https://github.com/drivegoescrazy-glitch/AynThorSecondScreenRust"
+issues = "https://github.com/drivegoescrazy-glitch/AynThorSecondScreenRust/issues"
 api = "0.2"
 side = "client"
 capabilities = ["registries"]
 
+# Both halves are client mod API only -- hooks and the ClientHost -- so the bundle
+# names the hook points' version instead of pinning a commit: the launcher then
+# builds it on any Horizon whose API has them, including newer Nightlies. `horizon`
+# and `mixins` are the exact commits from horizon-rust/horizon-mods' newest
+# reviewed native mods, which is what this was tested against.
 [native]
 game = "26.3"
-horizon = "de8b4e2526df9d7f611515b78123a26a3914176f"
-mixins = "e59da9094f0c2fdda6c627fe9eff22dec6a906f0"
+horizon = "4baa571566e39bfd6594988d3bb2bc85440c30e7"
+mixins = "e8cd0aa38cffef49cb2e088ef716baa107148c02"
+hooks = 2

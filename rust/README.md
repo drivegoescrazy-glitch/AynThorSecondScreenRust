@@ -55,9 +55,11 @@ Package it without the tool:
 python3 tools/pack_hmod.py
 ```
 
-The manifest pins Horizon build `de8b4e25` (the last public build) and its
-mixins tool. If the launcher refuses the package as built for another build,
-re-pin it to the build you play:
+The manifest's `[native]` names the hook points' version (`hooks = 2`), so the
+launcher builds the bundle on any Horizon whose API has them, including newer
+Nightlies; `horizon` and `mixins` carry the commits of the newest reviewed
+native mods in `horizon-rust/horizon-mods` for reference. If the launcher
+refuses the package as made for another build, re-pin it to the one you play:
 
 ```sh
 cargo horizon-mod update

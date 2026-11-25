@@ -30,7 +30,7 @@ either.
 
 ### Install
 
-1. Add `aynthor_secondscreen-1.0.0.hmod` through the launcher's **Mods**
+1. Add `aynthor_secondscreen-1.0.2.hmod` through the launcher's **Mods**
    page. To install by hand, copy it into the game folder's `horizon-mods/`
    (Linux: `~/.local/share/horizon/horizon-mods`) and add
    `mod.aynthor_secondscreen:true` to `horizon-mods.txt` beside `options.txt`.
@@ -39,9 +39,11 @@ either.
 3. Start the companion app, then join a world. Either order works — the app
    reconnects on its own.
 
-> **Build pin.** The package pins Horizon build `de8b4e25`, the last build whose
-> SDK was public. If your launcher says the mod is for another build, re-pin it
-> to the one you play with `cargo horizon-mod update` (see `rust/README.md`).
+> **Build pin.** The manifest names the hook points' version (`hooks = 2`) rather
+> than pinning a Horizon commit, so the launcher builds it on any Nightly whose
+> API has them; `horizon` and `mixins` still carry the commits of the newest
+> reviewed native mods for reference. If your launcher reports it made for
+> another build, re-pin with `cargo horizon-mod update` (see `rust/README.md`).
 
 ### What the second screen shows on Horizon
 
