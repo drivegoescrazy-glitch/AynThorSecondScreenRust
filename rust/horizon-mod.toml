@@ -1,0 +1,14 @@
+id = "aynthor_secondscreen"
+name = "AYN Thor Second Screen"
+version = "1.0.0"
+description = "Hides Minecraft's HUD and streams it to the AYN Thor's bottom screen over a loopback socket."
+authors = ["exojosh"]
+license = "CC0-1.0"
+api = "0.2"
+side = "client"
+capabilities = ["registries"]
+
+[native]
+game = "26.3"
+horizon = "de8b4e2526df9d7f611515b78123a26a3914176f"
+mixins = "e59da9094f0c2fdda6c627fe9eff22dec6a906f0"

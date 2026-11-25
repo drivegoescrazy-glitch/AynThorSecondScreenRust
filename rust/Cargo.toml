@@ -1,0 +1,10 @@
+[package]
+name = "aynthor-secondscreen"
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.95"
+license = "CC0-1.0"
+description = "Moves Minecraft's HUD to the AYN Thor's second screen over a loopback socket"
+
+[dependencies]
+horizon-mod-api = { path = ".horizon/sdk/api/crates/horizon-mod-api" }

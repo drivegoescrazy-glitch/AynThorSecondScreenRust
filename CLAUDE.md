@@ -8,6 +8,27 @@ A Fabric mod (Java 21) that runs inside Minecraft's JVM. It hides the vanilla HU
 
 This mod is one half of a two-process system targeting the **AYN Thor** (dual-screen Android handheld) running Minecraft via **Zalith Launcher 2**. The other half — the Android companion app that renders the HUD — lives in a sibling repo, `Android_AynThor_MinecraftSecondScreen`. The two communicate only via the socket protocol; there's no shared code or build.
 
+## Rust / Horizon port (current)
+
+`rust/` is a **Horizon native mod** (`mod_api`, `horizon-mod.toml`, `side =
+"client"`) that speaks the same socket protocol, so the same companion app works
+with it. The Java Fabric mod in `src/` is kept as the reference implementation.
+
+```
+cd rust && cargo horizon-mod check    # typecheck against the pinned build's SDK
+python3 tools/pack_hmod.py            # -> dist/aynthor_secondscreen-<version>.hmod
+```
+
+The crate was `cargo check`ed against the last publicly available Horizon API
+(upstream `de8b4e2526df9d7f611515b78123a26a3914176f`, the API crate built from
+source) and its wire-format unit tests ran; it has **not** been run in a
+Horizon instance. Horizon's SDK is published as `sdk-<build>` releases on
+`horizon-rust/horizon`, which is currently unreachable, so the manifest pins
+that last build and must be re-pinned with `cargo horizon-mod update` for a
+newer install. Deliberate gaps versus the Java mod: no map tiles, no item
+rendering, no vanilla texture bundle, no glint flag (no public foil read), no
+hardcore flag, and a fixed binding list. See `rust/README.md`.
+
 **`thor-hud-handoff.md`** is a detailed technical handoff/design doc covering the full system (both repos) — read it first for the JSON protocol spec, architecture rationale, and known issues. It's a snapshot from a point in development and may drift from the current tree in file/class specifics (there was a period of frequent package renaming) — verify anything file-specific against the actual source before relying on it.
 
 ## Commands

@@ -38,3 +38,8 @@ hs_err_*.log
 replay_*.log
 *.hprof
 *.jfr
+
+# Rust / Horizon mod
+rust/.horizon/
+rust/target/
+dist/
