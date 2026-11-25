@@ -13,6 +13,7 @@ mod bindings;
 mod chat;
 mod container;
 mod json;
+mod port;
 mod protocol;
 mod segment;
 mod server;
@@ -37,6 +38,9 @@ static LAST_CONTAINER: Mutex<Option<String>> = Mutex::new(None);
 static CHAT_HISTORY: Mutex<Vec<String>> = Mutex::new(Vec::new());
 static HAD_PLAYER: AtomicBool = AtomicBool::new(false);
 static WARNED_BIND: AtomicBool = AtomicBool::new(false);
+/// Seconds of silence after which the app may assume the game is gone. Raised by
+/// the app's `TIMEOUT:<seconds>` when it is about to make the game slow.
+static CLIENT_TIMEOUT_SECONDS: Mutex<Option<u32>> = Mutex::new(None);
 
 #[derive(Default)]
 struct AynThorSecondScreen;
@@ -364,6 +368,10 @@ fn handle_command(host: &mut dyn ClientHost, command: &str) {
         server.broadcast(&bindings::json());
         return;
     }
+    if let Some(seconds) = command.strip_prefix("TIMEOUT:") {
+        set_client_timeout(seconds.trim().parse().ok());
+        return;
+    }
     if let Some(payload) = command.strip_prefix("HUD:") {
         set_shown_in_game(payload);
         return;
@@ -528,14 +536,25 @@ fn warn_about_bind_failure(host: &mut dyn ClientHost, server: &server::Server) {
     if WARNED_BIND.swap(true, Ordering::Relaxed) {
         return;
     }
-    let line = format!(
-        "[Thor HUD] Port {} is in use, so the second screen cannot connect ({failure}). \
-         A leftover 'adb reverse tcp:{} tcp:{}' is the usual cause; clear it and this reconnects on its own.",
-        server::PORT,
-        server::PORT,
-        server::PORT
+    // Read once per failure, when the warning is actually shown: it costs a walk
+    // of /proc and the answer is for this moment only.
+    let holder = port::holder(
+        &port::listeners(),
+        port::PORT,
+        |pid| std::fs::read_to_string(format!("/proc/{pid}/cmdline")).ok(),
     );
+    let line = format!("[Thor HUD] {}", port::explain(&failure, &holder));
     let _ = host.chat_line(Text::literal(line));
+}
+
+/// `TIMEOUT:<seconds>`, from the app: how long it will wait for a line before
+/// calling the connection dead. The app sends a large value while it hands a
+/// big item or texture over for rendering, because that work queues in front of
+/// the snapshot on this side and a watchdog sized for the game's normal pace
+/// would cut a session that is merely busy. An unreadable value is ignored
+/// rather than trusted, and a later message always wins.
+fn set_client_timeout(seconds: Option<u32>) {
+    *CLIENT_TIMEOUT_SECONDS.lock().unwrap() = seconds.filter(|s| *s > 0);
 }
 
 #[cfg(test)]
@@ -549,6 +568,26 @@ mod tests {
         set_shown_in_game("");
         assert!(!game_draws("minecraft:player_health"));
         assert!(game_draws("minecraft:chat"));
+    }
+
+    #[test]
+    fn a_client_timeout_can_be_raised_and_put_back() {
+        set_client_timeout(Some(600));
+        assert_eq!(*CLIENT_TIMEOUT_SECONDS.lock().unwrap(), Some(600));
+        set_client_timeout(Some(0));
+        assert_eq!(*CLIENT_TIMEOUT_SECONDS.lock().unwrap(), None);
+        set_client_timeout(None);
+        assert_eq!(*CLIENT_TIMEOUT_SECONDS.lock().unwrap(), None);
+    }
+
+    #[test]
+    fn the_bind_warning_says_which_program_holds_the_port() {
+        let line = port::explain(
+            "Address already in use (os error 98)",
+            &port::Holder::Adb(421),
+        );
+        assert!(line.contains("adbd, pid 421"), "{line}");
+        assert!(line.contains("adb reverse --remove tcp:48291 tcp:48291"), "{line}");
     }
 
     #[test]

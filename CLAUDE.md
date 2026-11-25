@@ -29,6 +29,14 @@ newer install. Deliberate gaps versus the Java mod: no map tiles, no item
 rendering, no vanilla texture bundle, no glint flag (no public foil read), no
 hardcore flag, and a fixed binding list. See `rust/README.md`.
 
+`rust/src/port.rs` is the bind-failure diagnosis: a taken port is usually adbd
+from a leftover `adb reverse`, which neither half can clear (it lives on the
+computer the cable is plugged into), so the mod reads `/proc` to name the holder
+and tells the player what works. `TIMEOUT:<seconds>` lets the app raise its
+watchdog while it makes the game do something slow. The companion app's matching
+fix is recorded in `tools/companion-app-fix/`, and the earlier install failure
+(`Import failed: Cross-device link`) in `tools/horizon-android-fix/`.
+
 **`thor-hud-handoff.md`** is a detailed technical handoff/design doc covering the full system (both repos) — read it first for the JSON protocol spec, architecture rationale, and known issues. It's a snapshot from a point in development and may drift from the current tree in file/class specifics (there was a period of frequent package renaming) — verify anything file-specific against the actual source before relying on it.
 
 ## Commands

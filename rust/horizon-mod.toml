@@ -1,6 +1,6 @@
 id = "aynthor_secondscreen"
 name = "AYN Thor Second Screen"
-version = "1.0.0"
+version = "1.0.1"
 description = "Hides Minecraft's HUD and streams it to the AYN Thor's bottom screen over a loopback socket."
 authors = ["exojosh"]
 license = "CC0-1.0"
