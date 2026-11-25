@@ -30,11 +30,13 @@ The patch also adds `libc` to the Android-only dependencies of
 
 ## Checks run here
 
-- The `place()` logic was extracted and built on the host with the Android
-  `statvfs` code enabled (to type-check it against the real `libc` crate), plus
-  four tests: a file lands with its bytes, an existing target is replaced only
-  after a successful copy, a missing source leaves neither target nor scratch,
-  and free space is reported for a real directory. All four passed.
+- `place()` was extracted from `documents.rs` as written and built on the host
+  with the Android `statvfs` code enabled (type-checked against the real `libc`
+  crate), with five tests: a file lands with its bytes and no scratch remains,
+  an existing target is replaced only after a successful copy, a missing source
+  leaves neither target nor scratch, a copy that fails after opening the scratch
+  file removes it and leaves no target, and free space is reported for a real
+  directory. All five passed.
 - The whole `horizon-client` crate was **not** compiled: its dependency set is
   far larger than this workspace can build.
 

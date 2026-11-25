@@ -3,12 +3,14 @@ Install imported files without a cross-filesystem rename
 Android may back the app cache (getCacheDir) with a different filesystem than
 the profile's folder. The import staged the checked file in the cache and moved
 it into place with rename(), which the kernel refuses with EXDEV, so every
-import on such a device failed with "Cross-device link" and installed nothing.
+import on such a device failed with "Import failed: Cross-device link (os error
+18)" and installed nothing.
 
 place() copies into a scratch file beside the destination and renames within
 that one directory, so the install is atomic whatever the source filesystem is.
 Free space is checked first, and a failed copy leaves neither the scratch file
-nor a partial target behind.
+nor a partial target behind. A partial file from an import that was killed
+mid-copy is removed when the next import starts.
 
 Applied to kaito65452/horizon-android at 4681e5f (branch android); it applies
 cleanly to a fresh clone of that commit.
@@ -27,10 +29,28 @@ index b3918e8..316924e 100644
  [target.'cfg(windows)'.dependencies]
  # Use the registered URI handler without routing links through Explorer/cmd.
 diff --git a/crates/horizon-client/src/android/documents.rs b/crates/horizon-client/src/android/documents.rs
-index 35a0cee..fac751c 100644
+index 35a0cee..cc8e36d 100644
 --- a/crates/horizon-client/src/android/documents.rs
 +++ b/crates/horizon-client/src/android/documents.rs
-@@ -448,7 +448,7 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
+@@ -383,6 +383,17 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
+     }
+     let dir = request.home.join(request.kind.folder());
+     std::fs::create_dir_all(&dir)?;
++    // Nothing else cleans the profile folder: a partial file from an import that was
++    // killed mid-copy would otherwise sit among the mods as if it were one.
++    for entry in std::fs::read_dir(&dir)?.flatten() {
++        let name = entry.file_name().to_string_lossy().into_owned();
++        if name.starts_with(".importing-")
++            && name.ends_with(".part")
++            && entry.file_type()?.is_file()
++        {
++            let _ = std::fs::remove_file(entry.path());
++        }
++    }
+     if std::fs::symlink_metadata(&dir)?.file_type().is_symlink() {
+         return Err("Refusing a redirected content directory".into());
+     }
+@@ -448,7 +459,7 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
                  false,
              );
          } else {
@@ -39,7 +59,7 @@ index 35a0cee..fac751c 100644
              imported(
                  format!(
                      "Imported {} into {}. Enable it in game settings.",
-@@ -465,6 +465,76 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
+@@ -465,6 +476,78 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
      }
      result
  }
@@ -62,7 +82,9 @@ index 35a0cee..fac751c 100644
 +        .ok_or("Invalid content folder")?
 +        .to_string_lossy()
 +        .into_owned();
-+    let scratch = dir.join(format!(".{name}.importing"));
++    // Named so a started import is recognisable in the folder while it runs, and so the
++    // cleanup below can find one left by a killed process.
++    let scratch = dir.join(format!(".importing-{name}.part"));
 +    let placed = (|| -> Result<()> {
 +        let mut input = std::fs::File::open(staged)?;
 +        let mut output = std::fs::OpenOptions::new()
@@ -116,7 +138,7 @@ index 35a0cee..fac751c 100644
  pub fn resolve(choice: Choice) {
      let c = STATE
          .lock()
-@@ -523,7 +593,7 @@ pub fn resolve(choice: Choice) {
+@@ -523,7 +606,7 @@ pub fn resolve(choice: Choice) {
                  }
              }
          }
